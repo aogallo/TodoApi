@@ -1,6 +1,8 @@
 # TodoApi
 
-This is a basic API of building a controller-based. Use a memory database
+This is a basic controller-based API.
+
+Use a memory database.
 
 ## Next Steps
 
