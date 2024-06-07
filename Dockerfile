@@ -1,26 +1,26 @@
-#See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
-
-#Depending on the operating system of the host machines(s) that will build or run the containers, the image specified in the FROM statement may need to be changed.
-#For more information, please see https://aka.ms/containercompat
-
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-nanoserver-1809 AS base
-USER app
+FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
 WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
+EXPOSE 5076
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0-nanoserver-1809 AS build
-ARG BUILD_CONFIGURATION=Release
+ENV ASPNETCORE_URLS=http://+:5076
+
+# Creates a non-root user with an explicit UID and adds permission to access the /app folder
+# For more info, please refer to https://aka.ms/vscode-docker-dotnet-configure-containers
+RUN adduser -u 5678 --disabled-password --gecos "" appuser && chown -R appuser /app
+USER appuser
+
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+ARG configuration=Release
 WORKDIR /src
-COPY ["TodoApi/TodoApi.csproj", "TodoApi/"]
-RUN dotnet restore "./TodoApi/./TodoApi.csproj"
+COPY ["TodoApi.csproj", "./"]
+RUN dotnet restore "TodoApi.csproj"
 COPY . .
-WORKDIR "/src/TodoApi"
-RUN dotnet build "./TodoApi.csproj" -c %BUILD_CONFIGURATION% -o /app/build
+WORKDIR "/src/."
+RUN dotnet build "TodoApi.csproj" -c $configuration -o /app/build
 
 FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./TodoApi.csproj" -c %BUILD_CONFIGURATION% -o /app/publish /p:UseAppHost=false
+ARG configuration=Release
+RUN dotnet publish "TodoApi.csproj" -c $configuration -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
