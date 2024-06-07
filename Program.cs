@@ -22,7 +22,8 @@ app.UseSwaggerUI(options => {
 });
 // }
 
-app.UseHttpsRedirection();
+// comment for the warning Failed to determine the https port for redirect.
+// app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
